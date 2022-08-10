@@ -17,6 +17,10 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static(path.resolve(__dirname, 'public')))
 app.use(fileUpload({}))
+app.use('/api', (req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*')
+  next()
+})
 app.use('/api', router)
 
 // Обработка ошибок, последний Middleware
