@@ -2,9 +2,18 @@ const uuid = require('uuid')
 const path = require('path')
 const fs = require('fs')
 const { Op } = require('sequelize')
+const { Storage } = require('@google-cloud/storage')
+
 const { Product, Type, Country } = require('../models/models')
 const sequelize = require('../db')
 const ApiError = require('../error/ApiError')
+
+const storage = new Storage()
+const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET)
+
+const deleteImg = (filename) => {
+	bucket.file(filename).delete()
+}
 
 const getTypeId = async (type) => {
 	if(!type){
@@ -48,20 +57,6 @@ const getCountryId = async (country) => {
 	return countryId
 }
 
-const getImagePath = (filename) => path.resolve(__dirname, '..', 'public/img/products', filename)
-const unlinkImg = (filename) => {
-	const imgPath = getImagePath(filename)
-	fs.exists(imgPath, (isExist) => {
-		if(isExist){
-			fs.unlink(imgPath, (err) => {
-				if(err){
-					console.log(err)
-				}
-			})
-		}
-	})
-}
-
 const shopController = {
 	async put(req, res, next){ // create & update
 		try{
@@ -97,7 +92,7 @@ const shopController = {
 					countryId
 				}
 				if(clearImg && product.img){
-					unlinkImg(product.img)
+					deleteImg(product.img)
 					newData.img = ''
 				}
 				product.set(newData)
@@ -108,13 +103,31 @@ const shopController = {
 			}
 			if(req.files && req.files.img){ // update img field
 				if(product.img){
-					unlinkImg(product.img)
+					deleteImg(product.img)
 				}
 				//check mime type
 				const {mimetype} = req.files.img
-				if(mimetype.split('/')[0] == 'image'){
+				if(mimetype.split('/')[0].toLowerCase() == 'image'){
 					const fileName = uuid.v4() + path.extname(req.files.img.name)
-					req.files.img.mv(getImagePath(fileName))
+					//const filepath = getImagePath(fileName)
+
+					await new Promise((resolve, reject) => {
+	          const blob = bucket.file(fileName)
+	          const blobStream = blob.createWriteStream({
+	            resumable: false,
+	            metadata: {
+	              contentType: mimetype
+	            }
+	          })
+	          blobStream.on('error', (err) => {
+	            reject(new Error(err.message || err.toString()))
+	          })
+	          blobStream.on('finish', () => {
+	            resolve('success')
+	          })
+	          blobStream.end(req.files.img.data)
+	        })
+
 					product.img = fileName
 					await product.save()
 				}
@@ -143,7 +156,7 @@ const shopController = {
 				throw new Error(`Не найден товар с указанным ID (${id}).`)
 			}
 			if(product.img){
-				unlinkImg(product.img)
+				deleteImg(product.img)
 			}
 			await product.destroy()
 			return res.json({deleted: 'deleted'})
