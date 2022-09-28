@@ -4,20 +4,29 @@ const ApiError = require('../error/ApiError')
 const checkField = (name, value) => {
   value = value ? value.toString().trim() : ''
 	if(name !== 'comment'){
-    if(value.length < 3 || value.length > 15){
+    if(value.length < 3){
+      return false
+    }
+    if(name == 'email' || name == 'address'){
+      if(value.length > 35){
+        return false
+      }
+    }
+    else if(value.length > 25){
       return false
     }
 	}
-  else if(value.length > 100){
+  else if(value.length > 150){
     return false
   }
 	let result = true
-	switch(name){
-		case "email":
-			result = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
-		case "phone":
-			result = value.match(/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im)
+	if(name === 'email'){
+		result = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
+  }
+	else if(name === 'phone'){
+		result = value.match(/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im)
 	}
+  //if(!result){console.log('name', name, 'value', value, 'result', result)}
 	return result
 }
 
@@ -29,7 +38,7 @@ const orderController = {
 			for(let i in requiredFields){
 				const fieldName = requiredFields[i]
 				if(!checkField(fieldName, req.body[fieldName])){
-					throw new Error(`Невалидные данные (${fieldName}).`)
+					throw new Error(`Невалидные данные (${fieldName}: ${req.body[fieldName]}).`)
 				}
 				data[fieldName] = req.body[fieldName]
 			}
