@@ -97,11 +97,7 @@ const shopController = {
 				}
 				if(country){
 					const countryId = await getCountryId(country)
-<<<<<<< HEAD
 					if(!countryId){
-=======
-					if(countryId){
->>>>>>> ea8587029f8296ea672f75047578e6906b84d2fd
 						throw new Error(`Не найдена указанная страна (${country}).`)
 					}
 					newData.countryId = countryId
