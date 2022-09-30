@@ -62,18 +62,9 @@ const shopController = {
 		try{
 			//console.log(' - put - ', req.body)
 			let {id, name, type, country, description, price, clearImg} = req.body
-			//return res.json(req.body)
-			const typeId = await getTypeId(type)
-			if(!typeId){
-				throw new Error(`Не найден указанный тип (${type}).`)
-			}
-			const countryId = await getCountryId(country)
-			if(!countryId){
-				throw new Error(`Не найдена указанная страна (${country}).`)
-			}
 			price = parseInt(price) || 0
 			let product
-			if(id){ // update
+			if('id' in req.body){ // update
 				id = parseInt(id)
 				if(!id || isNaN(id)){
 					throw new Error(`Невалидный ID.`)
@@ -85,20 +76,53 @@ const shopController = {
 					throw new Error(`Запись с ID ${id} не найдена.`)
 				}
 				const newData = {
-					name,
-					description,
-					price,
-					typeId,
-					countryId
+					//name,
+					//description,
+					//price,
+					//typeId,
+					//countryId
+				}
+				if(name){
+					newData.name = name
+				}
+				if(description){
+					newData.description = description
+				}
+				if(type){
+					const typeId = await getTypeId(type)
+					if(!typeId){
+						throw new Error(`Не найден указанный тип (${type}).`)
+					}
+					newData.typeId = typeId
+				}
+				if(country){
+					const countryId = await getCountryId(country)
+					if(countryId){
+						throw new Error(`Не найдена указанная страна (${country}).`)
+					}
+					newData.countryId = countryId
+				}
+				if('price' in req.body){
+					newData.price = price
 				}
 				if(clearImg && product.img){
 					deleteImg(product.img)
 					newData.img = ''
 				}
-				product.set(newData)
-				await product.save()
+				if(Object.keys(newData).length){ // есть что обновлять
+					product.set(newData)
+					await product.save()
+				}
 			}
 			else{ // create
+				const typeId = await getTypeId(type)
+				if(!typeId){
+					throw new Error(`Не найден указанный тип (${type}).`)
+				}
+				const countryId = await getCountryId(country)
+				if(!countryId){
+					throw new Error(`Не найдена указанная страна (${country}).`)
+				}
 				product = await Product.create({name, typeId, countryId, description, price})
 			}
 			if(req.files && req.files.img){ // update img field
