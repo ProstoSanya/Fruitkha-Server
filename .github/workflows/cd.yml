@@ -1,0 +1,29 @@
+name: CD
+
+on:
+  push:
+    branches: [ "GCloud" ]
+  pull_request:
+    branches: [ "GCloud" ]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    environment: ENV
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCLOUD_SA_KEY }}'
+
+      - name: 'Deploy to App Engine'
+        uses: 'google-github-actions/deploy-appengine@v0'
+        with:
+          deliverables: 'app.yaml'
+          promote: false
+          version: 'v1'
