@@ -24,6 +24,7 @@ jobs:
       - name: 'Deploy to App Engine'
         uses: 'google-github-actions/deploy-appengine@v0'
         with:
-          deliverables: '${{ secrets.GCLOUD_PATH_TO_YAML_FILE }}'
+          project_id: '${{ secrets.GCLOUD_PROJECT_ID }}'
+          deliverables: 'app.yaml'
           promote: false
           version: 'v1'
