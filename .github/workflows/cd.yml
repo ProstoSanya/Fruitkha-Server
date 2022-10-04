@@ -16,6 +16,7 @@ jobs:
         node-version: [16.x]
 
     steps:
+      - uses: actions/checkout@v3
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
