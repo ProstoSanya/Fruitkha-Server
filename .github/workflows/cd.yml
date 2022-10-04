@@ -9,7 +9,6 @@ on:
 jobs:
   test:
     runs-on: windows-latest
-    environment: ENV
 
     strategy:
       matrix:
