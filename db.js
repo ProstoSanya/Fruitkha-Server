@@ -17,8 +17,7 @@ args.push({
     dialect: 'postgres',
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    logging: false,
-    underscored: true
+    logging: false
 })
 
 module.exports = new Sequelize(...args)
