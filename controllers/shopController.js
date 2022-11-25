@@ -69,7 +69,7 @@ const shopController = {
 			let {id, name, type, country, description, price, clearImg} = req.body
 			price = parseInt(price) || 0
 			let product
-			if('id' in req.body){ // update
+			if('id' in req.body && req.body.id){ // update
 				id = parseInt(id)
 				if(!id || isNaN(id)){
 					throw new Error(`Невалидный ID.`)
